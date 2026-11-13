@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Course Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F7F4;
+    --surface: #FFFFFF;
+    --ink: #121814;
+    --muted: #5C665F;
+    --faint: #9AA49C;
+    --line: #E4E8E2;
+    --green: #0B5B3C;
+    --green-deep: #07402A;
+    --green-soft: #E9F3EE;
+    --lime: #D9F05E;
+    --amber: #B45309;
+    --amber-soft: #FDF3E7;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(18,24,20,.05), 0 4px 16px rgba(18,24,20,.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  a { color: var(--green); text-decoration: none; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 980px; margin: 0 auto; padding: 0 20px;
+    display: flex; align-items: center; gap: 6px; height: 58px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 15px;
+    letter-spacing: -.02em; color: var(--ink); margin-right: 10px; flex-shrink: 0;
+  }
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--green);
+    color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .nav-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-link {
+    padding: 7px 13px; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+    color: var(--muted); white-space: nowrap;
+  }
+  .nav-link.active { background: var(--green-soft); color: var(--green); }
+  .nav-spacer { flex: 1; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px; cursor: pointer; border: none;
+    font-family: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 16px;
+    border-radius: 9px; transition: transform .06s ease, background .15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--green); color: #fff; }
+  .btn-primary:hover { background: var(--green-deep); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:hover { border-color: var(--faint); }
+  .btn-lime { background: var(--lime); color: var(--green-deep); }
+  .btn-sm { padding: 6px 11px; font-size: 12.5px; border-radius: 7px; }
+  .btn-danger { background: #FBEAE7; color: #B3392A; }
+
+  /* ---------- Layout ---------- */
+  main { max-width: 980px; margin: 0 auto; padding: 28px 20px 100px; }
+  .page-title { font-size: 26px; font-weight: 800; letter-spacing: -.03em; margin-bottom: 4px; }
+  .page-sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .micro {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--faint);
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- Home ---------- */
+  .hero { padding: 8px 0 26px; }
+  .hero h1 { font-size: 34px; font-weight: 800; letter-spacing: -.035em; line-height: 1.1; }
+  .hero .players { color: var(--muted); font-size: 14.5px; margin-top: 6px; font-weight: 500; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .stat { padding: 16px 18px; }
+  .stat .v { font-size: 26px; font-weight: 800; letter-spacing: -.03em; margin-top: 6px; }
+  .stat .d { font-size: 12px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { padding: 18px 20px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .panel-head a { font-size: 12.5px; font-weight: 600; }
+  .list-row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .list-row:last-child { border-bottom: none; }
+  .list-row:hover .lr-name { color: var(--green); }
+  .lr-name { font-weight: 600; font-size: 14px; letter-spacing: -.01em; }
+  .lr-sub { font-size: 12px; color: var(--faint); margin-top: 1px; }
+  .lr-right { font-size: 12.5px; color: var(--muted); font-weight: 600; flex-shrink: 0; text-align: right; }
+  .empty { color: var(--faint); font-size: 13.5px; padding: 14px 0; }
+
+  /* ---------- Badges / pills ---------- */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700;
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .pill-green { background: var(--green-soft); color: var(--green); }
+  .pill-lime { background: var(--lime); color: var(--green-deep); }
+  .pill-outline { border: 1px solid var(--line); color: var(--muted); background: var(--surface); }
+  .pill-amber { background: var(--amber-soft); color: var(--amber); }
+  .tag {
+    display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+    padding: 3px 10px; margin: 0 5px 6px 0;
+  }
+
+  /* ---------- Calendar ---------- */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .cal-title { font-size: 19px; font-weight: 800; letter-spacing: -.02em; }
+  .cal-nav { display: flex; gap: 6px; }
+  .cal-nav button {
+    border: 1px solid var(--line); background: var(--surface); cursor: pointer; border-radius: 8px;
+    padding: 7px 13px; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .cal-nav button:hover { border-color: var(--faint); }
+  .grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow);
+  }
+  .dow {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--faint); text-align: center; padding: 9px 0; background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .cell {
+    min-height: 82px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 6px; font-size: 11px;
+  }
+  .cell:nth-child(7n+7) { border-right: none; }
+  .cell.other { background: var(--bg); }
+  .cell .dnum { font-size: 11.5px; font-weight: 600; color: var(--faint); }
+  .cell.today .dnum {
+    background: var(--ink); color: #fff; border-radius: 999px;
+    min-width: 20px; height: 20px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .ev {
+    display: block; margin-top: 4px; padding: 3px 7px; border-radius: 6px; cursor: pointer;
+    font-size: 10.5px; font-weight: 600; line-height: 1.3; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .ev.played { background: var(--green); color: #fff; }
+  .ev.upcoming { background: var(--surface); color: var(--green); border: 1px dashed var(--green); }
+  .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); font-weight: 500; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .legend .i-p { background: var(--green); }
+  .legend .i-u { border: 1px dashed var(--green); background: var(--surface); }
+
+  /* ---------- Rankings table ---------- */
+  .tbl-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 660px; }
+  thead .group th {
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em;
+    padding: 10px 12px 2px; border-bottom: none; text-align: left;
+  }
+  thead .group .g-top100 { color: var(--green); }
+  thead .group .g-ours { color: var(--amber); }
+  th {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--faint); text-align: left; padding: 8px 12px 10px;
+    border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap; user-select: none;
+  }
+  th:hover { color: var(--ink); }
+  th .arrow { color: var(--green); }
+  td { padding: 13px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: var(--bg); }
+  .t-name { font-weight: 700; letter-spacing: -.01em; }
+  .t-sub { font-size: 11.5px; color: var(--faint); margin-top: 1px; font-weight: 500; }
+  .rk { font-weight: 800; font-size: 14.5px; letter-spacing: -.02em; }
+  .rk.none { color: var(--faint); font-weight: 500; font-size: 13px; }
+  .rk-ours { color: var(--amber); }
+  .divider-col { border-left: 2px solid var(--line); }
+
+  /* ---------- Course page ---------- */
+  .crumb { font-size: 12.5px; font-weight: 600; margin-bottom: 14px; display: inline-block; }
+  .course-hero { padding: 24px; margin-bottom: 16px; }
+  .course-hero h1 { font-size: 27px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; }
+  .course-hero .meta { color: var(--muted); font-size: 14px; margin-top: 5px; font-weight: 500; }
+  .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+  .rank-badge { text-align: center; padding: 10px 16px; border-radius: 10px; min-width: 76px; }
+  .rank-badge .rb-v { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .rank-badge .rb-l { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+  .rb-top { background: var(--green-soft); color: var(--green); }
+  .rb-ours { background: var(--amber-soft); color: var(--amber); }
+  .course-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+  .section-title { font-size: 15px; font-weight: 800; letter-spacing: -.01em; margin-bottom: 10px; }
+  .writeup { font-size: 14px; line-height: 1.7; color: var(--ink); white-space: pre-wrap; }
+  .tee-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 0; }
+  .tee-table th { padding: 7px 8px; font-size: 10px; cursor: default; }
+  .tee-table td { padding: 9px 8px; font-weight: 600; }
+  .round-row { padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .round-row:last-child { border-bottom: none; }
+  .rr-date { font-weight: 700; font-size: 13.5px; }
+  .rr-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ---------- Toolbar / footer ---------- */
+  .toolbar { display: flex; gap: 10px; margin-top: 34px; flex-wrap: wrap; }
+  .hint { font-size: 11.5px; color: var(--faint); margin-top: 10px; max-width: 480px; line-height: 1.6; }
+  footer { max-width: 980px; margin: 0 auto; padding: 0 20px 40px; font-size: 12px; color: var(--faint); }
+
+  /* ---------- Modal ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(18,24,20,.4); display: none;
+    align-items: flex-start; justify-content: center; padding: 28px 14px; z-index: 50; overflow-y: auto;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 16px; box-shadow: 0 20px 60px rgba(18,24,20,.2);
+    width: 100%; max-width: 540px; padding: 24px; margin-bottom: 30px;
+  }
+  .modal h2 { font-size: 19px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+  .m-section { margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; }
+  .field input, .field select, .field textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+    font-family: inherit; font-size: 14px; color: var(--ink); padding: 9px 12px; outline: none;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); background: var(--surface); }
+  .field textarea { resize: vertical; min-height: 76px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+
+  .course-row { display: flex; gap: 8px; align-items: flex-end; }
+  .course-row .field { flex: 1; margin-bottom: 0; }
+  .search-results { border: 1px solid var(--line); border-radius: 10px; margin: 10px 0 4px; background: var(--bg); max-height: 210px; overflow-y: auto; }
+  .sr-item { padding: 10px 13px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13.5px; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover { background: var(--surface); }
+  .sr-item b { font-weight: 700; }
+  .sr-loc { font-size: 11.5px; color: var(--faint); margin-top: 1px; }
+  .sr-status { padding: 10px 13px; font-size: 12.5px; color: var(--muted); }
+  .gear { background: none; border: none; cursor: pointer; color: var(--faint); font-size: 16px; padding: 6px; }
+  .gear:hover { color: var(--ink); }
+
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 7px; }
+  .tag-opt {
+    font-family: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+    cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    transition: all .12s;
+  }
+  .tag-opt.on { background: var(--green); border-color: var(--green); color: #fff; }
+  .tag-add-row { display: flex; gap: 8px; margin-top: 10px; }
+  .tag-add-row input {
+    flex: 1; background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+    font-family: inherit; font-size: 13px; padding: 8px 12px; outline: none; color: var(--ink);
+  }
+  .tag-add-row input:focus { border-color: var(--green); }
+
+  .tee-row { display: grid; grid-template-columns: 1.3fr 1fr .7fr .9fr .8fr 30px; gap: 7px; margin-bottom: 7px; align-items: center; }
+  .tee-row input {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 7px;
+    font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 8px; outline: none; color: var(--ink); width: 100%;
+  }
+  .tee-row input:focus { border-color: var(--green); }
+  .tee-head { display: grid; grid-template-columns: 1.3fr 1fr .7fr .9fr .8fr 30px; gap: 7px; margin-bottom: 5px; }
+  .tee-head span { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); }
+  .del-x { background: none; border: none; cursor: pointer; color: var(--faint); font-size: 16px; line-height: 1; }
+  .del-x:hover { color: #B3392A; }
+
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; padding: 11px 20px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; display: none; z-index: 99; max-width: 90vw; text-align: center;
+    box-shadow: 0 8px 30px rgba(18,24,20,.25);
+  }
+
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .home-grid { grid-template-columns: 1fr; }
+    .course-grid { grid-template-columns: 1fr; }
+    .cell { min-height: 62px; }
+    .ev { font-size: 8.5px; padding: 2px 4px; }
+    .hero h1 { font-size: 27px; }
+    .row2 { grid-template-columns: 1fr; }
+    .tee-row, .tee-head { grid-template-columns: 1.1fr .9fr .6fr .8fr .7fr 26px; gap: 5px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#/" class="logo"><span class="logo-mark">&#9971;</span><span>Course Log</span></a>
+    <div class="nav-links">
+      <a class="nav-link" data-route="home" href="#/">Home</a>
+      <a class="nav-link" data-route="ledger" href="#/ledger">Ledger</a>
+      <a class="nav-link" data-route="calendar" href="#/calendar">Calendar</a>
+      <a class="nav-link" data-route="rankings" href="#/rankings">Rankings</a>
+      <a class="nav-link" data-route="plan" href="#/plan">2027 Plan</a>
+      <a class="nav-link" data-route="bucket" href="#/bucket">Bucket List</a>
+    </div>
+    <div class="nav-spacer"></div>
+    <button class="btn btn-primary btn-sm" id="nav-add">+ Round</button>
+  </div>
+</nav>
+
+<main id="app"></main>
+
+<footer>
+  <div class="toolbar" style="margin-top:0">
+    <button class="btn btn-ghost btn-sm" id="export-btn">Copy data.js</button>
+    <button class="btn btn-ghost btn-sm" id="reset-btn">Reload from file</button>
+  </div>
+  <div class="hint">Edits save on this device instantly. To sync with your partner, hit "Copy data.js" and paste it over data.js in your GitHub repo.</div>
+</footer>
+
+<!-- ADD / EDIT MODAL -->
+<div class="overlay" id="form-overlay">
+  <div class="modal">
+    <h2 id="form-title">Log Round</h2>
+
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="f-date" /></div>
+      <div class="field"><label>Status</label>
+        <select id="f-status"><option value="upcoming">Upcoming</option><option value="played">Played</option></select>
+      </div>
+    </div>
+    <div class="course-row">
+      <div class="field"><label>Course</label><input id="f-course" placeholder="Course name" /></div>
+      <button type="button" class="btn btn-primary btn-sm" id="course-search-btn" style="margin-bottom:2px">Search</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="t100-btn" style="margin-bottom:2px" title="Look up on top100golfcourses.com">Top100 &#8599;</button>
+      <button type="button" class="gear" id="settings-btn" title="API key settings">&#9881;</button>
+    </div>
+    <div class="search-results" id="search-results" style="display:none"></div>
+    <div class="field" style="margin-top:12px"><label>Top 100 Page URL</label><input id="f-t100" placeholder="paste the course's top100golfcourses.com link" /></div>
+    <div class="row2">
+      <div class="field"><label>City, State</label><input id="f-city" placeholder="Columbus, OH" /></div>
+      <div class="field"><label>Architect</label><input id="f-architect" placeholder="e.g. Donald Ross" /></div>
+    </div>
+
+    <div class="m-section micro" style="color:var(--green)">Rankings</div>
+    <div class="row2">
+      <div class="field"><label>State Ranking</label><input id="f-state" inputmode="numeric" placeholder="e.g. 4" /></div>
+      <div class="field"><label>National Ranking</label><input id="f-natl" inputmode="numeric" placeholder="e.g. 87" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label id="lbl-r1">P1 Rank</label><input id="f-r1" inputmode="numeric" placeholder="Your rank" /></div>
+      <div class="field"><label id="lbl-r2">P2 Rank</label><input id="f-r2" inputmode="numeric" placeholder="Their rank" /></div>
+    </div>
+
+    <div class="m-section micro" style="color:var(--green)">Course Characteristics</div>
+    <div class="tag-cloud" id="tag-cloud"></div>
+    <div class="tag-add-row">
+      <input id="tag-custom" placeholder="Add your own tag&hellip;" />
+      <button type="button" class="btn btn-ghost btn-sm" id="tag-add-btn">Add</button>
+    </div>
+
+    <div class="m-section micro" style="color:var(--green)">Tees &middot; Par / Rating / Slope</div>
+    <div class="tee-head">
+      <span>Tee</span><span>Yards</span><span>Par</span><span>Rating</span><span>Slope</span><span></span>
+    </div>
+    <div id="tee-rows"></div>
+    <button type="button" class="btn btn-ghost btn-sm" id="tee-add-btn">+ Add Tee</button>
+
+    <div class="m-section micro" style="color:var(--green)">Write-Up &amp; Scores</div>
+    <div class="field"><label>Course History / Our Write-Up</label><textarea id="f-history" placeholder="Your take on the course &mdash; use the Top100 write-up as reference, in your own words&hellip;"></textarea></div>
+    <div class="row2">
+      <div class="field"><label id="lbl-s1">P1 Score</label><input id="f-s1" inputmode="numeric" placeholder="optional" /></div>
+      <div class="field"><label id="lbl-s2">P2 Score</label><input id="f-s2" inputmode="numeric" placeholder="optional" /></div>
+    </div>
+    <div class="field"><label>Notes</label><input id="f-notes" placeholder="optional" /></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="f-cancel">Cancel</button>
+      <button class="btn btn-danger" id="f-delete" style="display:none">Delete</button>
+      <button class="btn btn-primary" id="f-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <h2>Course Search Settings</h2>
+    <div style="font-size:13.5px; line-height:1.65; color:var(--muted); margin-bottom:14px">
+      Course search pulls location, tees, par, rating, and slope from <b>GolfCourseAPI</b>
+      (free &mdash; sign up with just your email at
+      <a href="https://golfcourseapi.com" target="_blank" rel="noopener">golfcourseapi.com</a>),
+      and architect + history from Wikipedia (no key needed). Your key is saved only in this browser.
+    </div>
+    <div class="field">
+      <label>GolfCourseAPI Key</label>
+      <input id="api-key-input" placeholder="paste your key here" autocomplete="off" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="settings-cancel">Cancel</button>
+      <button class="btn btn-primary" id="settings-save">Save Key</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="data.js"></script>
+<script src="sync.js"></script>
+<script src="photos.js"></script>
+<script src="ledger-data.js"></script>
+<script src="ledger.js"></script>
+<script src="plan-data.js"></script>
+<script src="plan.js"></script>
+<script>
+(function () {
+  const LS_KEY = "golf-log-rounds-v1";
+  const KEY_LS = "golf-log-api-key";
+  const players = (typeof PLAYERS !== "undefined" && PLAYERS.length === 2) ? PLAYERS : ["Player 1", "Player 2"];
+  const p1 = players[0].split(" ")[0], p2 = players[1].split(" ")[0];
+
+  const DEFAULT_TAGS = [
+    "Fast Greens", "Slow Greens", "Firm & Fast", "Soft Conditions",
+    "Tree-Lined", "Links Style", "Parkland", "Tight Fairways", "Wide Fairways",
+    "Elevation Changes", "Great Conditioning", "Rough Was Brutal",
+    "Sloped Greens", "Walkable", "Great Value", "Overpriced",
+    "Strong Par 3s", "Reachable Par 5s", "Blind Shots", "Water Everywhere"
+  ];
+
+  // ---------- state ----------
+  const DIRTY_KEY = LS_KEY + "-dirty";
+  function isDirty() { try { return !!localStorage.getItem(DIRTY_KEY); } catch (e) { return false; } }
+  function setDirty(v) { try { if (v) localStorage.setItem(DIRTY_KEY, "1"); else localStorage.removeItem(DIRTY_KEY); } catch (e) {} }
+  // One-time: rounds saved in this browser before GitHub sync existed count as unsynced edits.
+  try { if (localStorage.getItem(LS_KEY) && !localStorage.getItem("golf-log-v2")) setDirty(true); localStorage.setItem("golf-log-v2", "1"); } catch (e) {}
+  let rounds = load();
+  let viewDate = new Date();
+  let editingIndex = null;
+  let sortKey = "nationalRank", sortDir = 1;
+  let formTags = [], formTees = [];
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw && isDirty()) return normalize(JSON.parse(raw));
+    } catch (e) {}
+    return normalize(typeof ROUNDS !== "undefined" ? JSON.parse(JSON.stringify(ROUNDS)) : []);
+  }
+  function normalize(list) {
+    return list.map(r => Object.assign(
+      { architect: "", history: "", t100: "", tags: [], tees: [] }, r,
+      { tags: Array.isArray(r.tags) ? r.tags : [], tees: Array.isArray(r.tees) ? r.tees : [] }
+    ));
+  }
+  function dataFileText() {
+    const body = rounds.map(r => "  " + JSON.stringify(r) + ",").join("\n");
+    return "// GOLF LOG DATA — edited from the site or by Claude; committed to GitHub automatically\n\n" +
+      "const PLAYERS = " + JSON.stringify(players) + ";\n\n" +
+      "const ROUNDS = [\n" + body + "\n];\n";
+  }
+  function persist() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(rounds)); } catch (e) {}
+    setDirty(true);
+    if (window.GHSync) GHSync.queue("data.js", dataFileText, "Rounds: update from the site", ok => { if (ok) setDirty(false); });
+  }
+
+  // ---------- helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const app = $("app");
+  function esc(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+  function parseDate(s) { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); }
+  function fmtDate(s, opts) {
+    if (!s) return "";
+    return parseDate(s).toLocaleDateString("en-US", opts || { month: "short", day: "numeric", year: "numeric" });
+  }
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.style.display = "block";
+    clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 2200);
+  }
+  function num(v) { const n = parseInt(v, 10); return isNaN(n) ? null : n; }
+  function slugify(s) { return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  }
+
+  // ---------- aggregation ----------
+  function coursesMap() {
+    const map = {};
+    rounds.forEach((r, idx) => {
+      const key = slugify(r.course);
+      if (!key) return;
+      if (!map[key]) {
+        map[key] = { slug: key, course: r.course, city: "", architect: "", history: "", t100: "",
+                     stateRank: null, nationalRank: null, rank1: null, rank2: null,
+                     tags: [], tees: [], roundIdx: [], plays: 0, lastDate: null, nextDate: null };
+      }
+      const c = map[key];
+      c.roundIdx.push(idx);
+      c.plays++;
+      if (r.city) c.city = r.city;
+      if (r.architect) c.architect = r.architect;
+      if (r.history) c.history = r.history;
+      if (r.t100) c.t100 = r.t100;
+      if (num(r.stateRank) !== null) c.stateRank = num(r.stateRank);
+      if (num(r.nationalRank) !== null) c.nationalRank = num(r.nationalRank);
+      if (num(r.rank1) !== null) c.rank1 = num(r.rank1);
+      if (num(r.rank2) !== null) c.rank2 = num(r.rank2);
+      if ((r.tees || []).length) c.tees = r.tees;
+      (r.tags || []).forEach(t => { if (!c.tags.includes(t)) c.tags.push(t); });
+      if (r.status === "played" && (!c.lastDate || r.date > c.lastDate)) c.lastDate = r.date;
+      if (r.status === "upcoming" && r.date >= todayISO() && (!c.nextDate || r.date < c.nextDate)) c.nextDate = r.date;
+    });
+    return map;
+  }
+
+  // ---------- router ----------
+  function route() {
+    const h = location.hash.replace(/^#\/?/, "");
+    const parts = h.split("/").filter(Boolean);
+    if (parts[0] === "calendar") return { name: "calendar" };
+    if (parts[0] === "rankings") return { name: "rankings" };
+    if (parts[0] === "ledger") return { name: "ledger" };
+    if (parts[0] === "plan") return { name: "plan" };
+    if (parts[0] === "bucket") return { name: "bucket" };
+    if (parts[0] === "course" && parts[1]) return { name: "course", slug: decodeURIComponent(parts[1]) };
+    return { name: "home" };
+  }
+  function render() {
+    const r = route();
+    document.querySelectorAll(".nav-link").forEach(a => {
+      a.classList.toggle("active", a.dataset.route === r.name || (r.name === "course" && a.dataset.route === "rankings"));
+    });
+    if (r.name === "home") renderHome();
+    else if (r.name === "calendar") renderCalendarPage();
+    else if (r.name === "rankings") renderRankings();
+    else if (r.name === "ledger" && window.LedgerApp) window.LedgerApp.render(app);
+    else if ((r.name === "plan" || r.name === "bucket") && window.PlanApp) window.PlanApp.render(app, r.name);
+    else renderCourse(r.slug);
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener("hashchange", render);
+
+  // ---------- HOME ----------
+  function renderHome() {
+    const cmap = coursesMap();
+    const courses = Object.values(cmap);
+    const played = rounds.filter(r => r.status === "played");
+    const upcoming = rounds.filter(r => r.status === "upcoming" && r.date >= todayISO())
+      .sort((a,b) => a.date < b.date ? -1 : 1).slice(0, 4);
+    const recent = played.slice().sort((a,b) => a.date > b.date ? -1 : 1).slice(0, 4);
+    const best1 = courses.filter(c => c.rank1 !== null).sort((a,b) => a.rank1 - b.rank1)[0];
+    const best2 = courses.filter(c => c.rank2 !== null).sort((a,b) => a.rank2 - b.rank2)[0];
+
+    app.innerHTML =
+      '<div class="hero">' +
+        '<div class="micro" style="color:var(--green)">Course Log &amp; Rankings</div>' +
+        '<h1>' + esc(players[0]) + ' &amp; ' + esc(players[1]) + '</h1>' +
+        '<div class="players">Every course, ranked and remembered.</div>' +
+      '</div>' +
+      '<div class="stats">' +
+        stat(played.length, "Rounds played") +
+        stat(courses.length, "Courses logged") +
+        stat(rounds.filter(r => r.status === "upcoming" && r.date >= todayISO()).length, "Upcoming") +
+        stat(courses.filter(c => c.nationalRank !== null).length, "Nationally ranked") +
+      '</div>' +
+      '<div class="home-grid">' +
+        '<div class="card panel">' +
+          '<div class="panel-head"><span class="section-title" style="margin:0">Upcoming</span><a href="#/calendar">Calendar &rarr;</a></div>' +
+          (upcoming.length ? upcoming.map(r => listRow(r, "up")).join("") : '<div class="empty">Nothing on the tee sheet yet.</div>') +
+        '</div>' +
+        '<div class="card panel">' +
+          '<div class="panel-head"><span class="section-title" style="margin:0">Recently played</span><a href="#/rankings">Rankings &rarr;</a></div>' +
+          (recent.length ? recent.map(r => listRow(r, "sc")).join("") : '<div class="empty">No rounds logged yet.</div>') +
+        '</div>' +
+      '</div>' +
+      ((best1 || best2) ?
+        '<div class="home-grid" style="margin-top:16px">' +
+          (best1 ? favPanel(p1 + "\u2019s #1", best1) : "") +
+          (best2 ? favPanel(p2 + "\u2019s #1", best2) : "") +
+        '</div>' : "");
+
+    app.querySelectorAll("[data-goto]").forEach(el =>
+      el.addEventListener("click", () => location.hash = "#/course/" + el.dataset.goto));
+  }
+  function stat(v, label) {
+    return '<div class="card stat"><div class="micro">' + label + '</div><div class="v num">' + v + '</div></div>';
+  }
+  function listRow(r, mode) {
+    const right = mode === "up"
+      ? fmtDate(r.date, { weekday: "short", month: "short", day: "numeric" })
+      : (r.score1 || r.score2 ? [r.score1 ? p1 + " " + r.score1 : "", r.score2 ? p2 + " " + r.score2 : ""].filter(Boolean).join(" &middot; ") : fmtDate(r.date, { month: "short", day: "numeric" }));
+    return '<div class="list-row" data-goto="' + slugify(r.course) + '">' +
+      '<div><div class="lr-name">' + esc(r.course) + '</div><div class="lr-sub">' + esc(r.city || "") + '</div></div>' +
+      '<div class="lr-right num">' + right + '</div></div>';
+  }
+  function favPanel(title, c) {
+    return '<div class="card panel">' +
+      '<div class="micro" style="color:var(--amber)">' + esc(title) + '</div>' +
+      '<div class="list-row" data-goto="' + c.slug + '" style="border:none">' +
+        '<div><div class="lr-name" style="font-size:16px">' + esc(c.course) + '</div>' +
+        '<div class="lr-sub">' + esc(c.city || "") + (c.nationalRank ? ' &middot; #' + c.nationalRank + ' national' : '') + '</div></div>' +
+        '<span class="pill pill-lime">Our pick</span>' +
+      '</div></div>';
+  }
+
+  // ---------- CALENDAR ----------
+  function renderCalendarPage() {
+    app.innerHTML =
+      '<div class="page-title">Calendar</div>' +
+      '<div class="page-sub">Played rounds are solid; upcoming are dashed. Tap a round to open the course.</div>' +
+      '<div class="cal-head">' +
+        '<div class="cal-title" id="cal-title"></div>' +
+        '<div class="cal-nav"><button id="prev-m">&larr;</button><button id="today-m">Today</button><button id="next-m">&rarr;</button></div>' +
+      '</div>' +
+      '<div class="grid" id="cal-grid"></div>' +
+      '<div class="legend"><span><i class="i-p"></i>Played</span><span><i class="i-u"></i>Upcoming</span></div>';
+    $("prev-m").addEventListener("click", () => { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1); drawGrid(); });
+    $("next-m").addEventListener("click", () => { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1); drawGrid(); });
+    $("today-m").addEventListener("click", () => { viewDate = new Date(); drawGrid(); });
+    drawGrid();
+  }
+  function drawGrid() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    $("cal-title").textContent = viewDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const grid = $("cal-grid");
+    grid.innerHTML = "";
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d => {
+      const el = document.createElement("div"); el.className = "dow"; el.textContent = d; grid.appendChild(el);
+    });
+    const first = new Date(y, m, 1);
+    const start = new Date(y, m, 1 - first.getDay());
+    const today = new Date();
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const cell = document.createElement("div");
+      cell.className = "cell" + (d.getMonth() !== m ? " other" : "");
+      if (d.toDateString() === today.toDateString()) cell.classList.add("today");
+      cell.innerHTML = '<span class="dnum num">' + d.getDate() + '</span>';
+      const iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+      rounds.forEach((r) => {
+        if (r.date === iso) {
+          const ev = document.createElement("span");
+          ev.className = "ev " + (r.status === "played" ? "played" : "upcoming");
+          ev.textContent = r.course || "(course)";
+          ev.title = r.course;
+          ev.addEventListener("click", () => location.hash = "#/course/" + slugify(r.course));
+          cell.appendChild(ev);
+        }
+      });
+      grid.appendChild(cell);
+    }
+  }
+
+  // ---------- RANKINGS ----------
+  function renderRankings() {
+    const courses = Object.values(coursesMap());
+    courses.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === "course") { av = (av||"").toLowerCase(); bv = (bv||"").toLowerCase(); return av < bv ? -sortDir : av > bv ? sortDir : 0; }
+      if (sortKey === "lastDate") { av = a.lastDate || ""; bv = b.lastDate || ""; return av < bv ? sortDir : av > bv ? -sortDir : 0; }
+      if (av === null) av = Infinity; if (bv === null) bv = Infinity;
+      return (av - bv) * sortDir;
+    });
+    const arrow = (k) => sortKey === k ? '<span class="arrow">' + (sortDir === 1 ? "\u2193" : "\u2191") + '</span>' : "";
+    app.innerHTML =
+      '<div class="page-title">Rankings</div>' +
+      '<div class="page-sub">Top 100 official rankings side-by-side with our own. Tap any course for its full page.</div>' +
+      '<div class="tbl-wrap"><table>' +
+        '<thead>' +
+          '<tr class="group"><th></th><th colspan="2" class="g-top100">Top 100</th><th colspan="2" class="g-ours divider-col">Our Rankings</th><th></th></tr>' +
+          '<tr>' +
+            '<th data-k="course">Course ' + arrow("course") + '</th>' +
+            '<th data-k="nationalRank">National ' + arrow("nationalRank") + '</th>' +
+            '<th data-k="stateRank">State ' + arrow("stateRank") + '</th>' +
+            '<th data-k="rank1" class="divider-col">' + esc(p1) + ' ' + arrow("rank1") + '</th>' +
+            '<th data-k="rank2">' + esc(p2) + ' ' + arrow("rank2") + '</th>' +
+            '<th data-k="lastDate">Last Played ' + arrow("lastDate") + '</th>' +
+          '</tr>' +
+        '</thead><tbody>' +
+        (courses.length ? courses.map(c =>
+          '<tr data-goto="' + c.slug + '">' +
+            '<td><div class="t-name">' + esc(c.course) + '</div><div class="t-sub">' + esc(c.city || "") + (c.plays ? ' &middot; ' + c.plays + (c.plays === 1 ? ' round' : ' rounds') : '') + '</div></td>' +
+            rkTd(c.nationalRank, false) + rkTd(c.stateRank, false) +
+            '<td class="divider-col">' + rkSpan(c.rank1, true) + '</td>' +
+            '<td>' + rkSpan(c.rank2, true) + '</td>' +
+            '<td class="num" style="font-size:12.5px;color:var(--muted);font-weight:600">' +
+              (c.lastDate ? fmtDate(c.lastDate) : '<span class="pill pill-outline">upcoming</span>') + '</td>' +
+          '</tr>').join("") :
+          '<tr><td colspan="6"><div class="empty" style="text-align:center">No courses yet — log your first round.</div></td></tr>') +
+        '</tbody></table></div>';
+    app.querySelectorAll("th[data-k]").forEach(th => {
+      th.addEventListener("click", () => {
+        const k = th.dataset.k;
+        if (sortKey === k) sortDir *= -1; else { sortKey = k; sortDir = 1; }
+        renderRankings();
+      });
+    });
+    app.querySelectorAll("tr[data-goto]").forEach(tr =>
+      tr.addEventListener("click", () => location.hash = "#/course/" + tr.dataset.goto));
+  }
+  function rkTd(v, ours) { return '<td>' + rkSpan(v, ours) + '</td>'; }
+  function rkSpan(v, ours) {
+    if (v === null) return '<span class="rk none">&mdash;</span>';
+    return '<span class="rk num' + (ours ? ' rk-ours' : '') + '">#' + v + '</span>';
+  }
+
+  // ---------- COURSE PAGE ----------
+  function renderCourse(slug) {
+    const c = coursesMap()[slug];
+    if (!c) {
+      app.innerHTML = '<a class="crumb" href="#/rankings">&larr; Rankings</a><div class="page-title">Course not found</div>';
+      return;
+    }
+    const courseRounds = c.roundIdx.map(i => ({ r: rounds[i], i })).sort((a,b) => a.r.date > b.r.date ? -1 : 1);
+    app.innerHTML =
+      '<a class="crumb" href="#/rankings">&larr; Rankings</a>' +
+      '<div class="card course-hero">' +
+        '<h1>' + esc(c.course) + '</h1>' +
+        '<div class="meta">' + esc(c.city || "") + (c.architect ? ' &middot; Designed by ' + esc(c.architect) : '') + '</div>' +
+        '<div class="badge-row">' +
+          badge(c.nationalRank, "National", "rb-top") + badge(c.stateRank, "State", "rb-top") +
+          badge(c.rank1, esc(p1), "rb-ours") + badge(c.rank2, esc(p2), "rb-ours") +
+        '</div>' +
+        (c.tags.length ? '<div style="margin-top:16px">' + c.tags.map(t => '<span class="tag">' + esc(t) + '</span>').join("") + '</div>' : "") +
+      '</div>' +
+      '<div class="course-grid">' +
+        '<div>' +
+          (c.history ?
+            '<div class="card panel" style="margin-bottom:16px"><div class="section-title">About &amp; Our Take</div><div class="writeup">' + esc(c.history) + '</div>' +
+            (c.t100 ? '<div style="margin-top:12px"><a href="' + esc(c.t100) + '" target="_blank" rel="noopener" style="font-size:13px;font-weight:600">Top 100 write-up &#8599;</a></div>' : '') +
+            '</div>' :
+            (c.t100 ? '<div class="card panel" style="margin-bottom:16px"><a href="' + esc(c.t100) + '" target="_blank" rel="noopener" style="font-size:13px;font-weight:600">Top 100 write-up &#8599;</a></div>' : "")) +
+          '<div class="card panel"><div class="panel-head"><span class="section-title" style="margin:0">Rounds</span>' +
+          '<button class="btn btn-primary btn-sm" id="log-here">+ Log round here</button></div>' +
+          (courseRounds.length ? courseRounds.map(({r, i}) =>
+            '<div class="round-row">' +
+              '<div><div class="rr-date">' + fmtDate(r.date) + ' ' +
+                (r.status === "played" ? '<span class="pill pill-green" style="font-size:10.5px;padding:2px 8px">Played</span>' : '<span class="pill pill-outline" style="font-size:10.5px;padding:2px 8px">Upcoming</span>') + '</div>' +
+              '<div class="rr-meta num">' +
+                [r.score1 ? p1 + " " + r.score1 : "", r.score2 ? p2 + " " + r.score2 : ""].filter(Boolean).join(" \u00B7 ") +
+                (r.notes ? (r.score1 || r.score2 ? " \u00B7 " : "") + esc(r.notes) : "") + '</div></div>' +
+              '<button class="btn btn-ghost btn-sm" data-edit="' + i + '">Edit</button>' +
+            '</div>').join("") : '<div class="empty">No rounds yet.</div>') +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          (c.tees.length ?
+            '<div class="card panel"><div class="section-title">Tees</div>' +
+            '<table class="tee-table"><tr><th>Tee</th><th>Yds</th><th>Par</th><th>Rating</th><th>Slope</th></tr>' +
+            c.tees.map(t => '<tr class="num"><td>' + esc(t.name || "\u2014") + '</td><td>' + esc(t.yards || "\u2014") + '</td><td>' + esc(t.par || "\u2014") + '</td><td>' + esc(t.rating || "\u2014") + '</td><td>' + esc(t.slope || "\u2014") + '</td></tr>').join("") +
+            '</table></div>' : "") +
+        '</div>' +
+      '</div>';
+    $("log-here").addEventListener("click", () => {
+      openForm(null);
+      const last = courseRounds[0] ? courseRounds[0].r : null;
+      if (last) prefillFrom(last);
+      else $("f-course").value = c.course;
+    });
+    app.querySelectorAll("[data-edit]").forEach(b =>
+      b.addEventListener("click", () => openForm(parseInt(b.dataset.edit, 10))));
+  }
+  function badge(v, label, cls) {
+    return '<div class="rank-badge ' + cls + '"><div class="rb-v num">' + (v === null ? "\u2014" : "#" + v) + '</div><div class="rb-l">' + label + '</div></div>';
+  }
+
+  // ---------- form labels ----------
+  $("lbl-r1").textContent = players[0] + " Rank";
+  $("lbl-r2").textContent = players[1] + " Rank";
+  $("lbl-s1").textContent = players[0] + " Score";
+  $("lbl-s2").textContent = players[1] + " Score";
+
+  // ---------- tag picker ----------
+  function renderTagCloud() {
+    const all = [...DEFAULT_TAGS];
+    formTags.forEach(t => { if (!all.includes(t)) all.push(t); });
+    const cloud = $("tag-cloud");
+    cloud.innerHTML = "";
+    all.forEach(t => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tag-opt" + (formTags.includes(t) ? " on" : "");
+      b.textContent = t;
+      b.addEventListener("click", () => {
+        const i = formTags.indexOf(t);
+        if (i >= 0) formTags.splice(i, 1); else formTags.push(t);
+        renderTagCloud();
+      });
+      cloud.appendChild(b);
+    });
+  }
+  function addCustomTag() {
+    const v = $("tag-custom").value.trim();
+    if (!v) return;
+    if (!formTags.includes(v)) formTags.push(v);
+    $("tag-custom").value = "";
+    renderTagCloud();
+  }
+  $("tag-add-btn").addEventListener("click", addCustomTag);
+  $("tag-custom").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCustomTag(); } });
+
+  // ---------- tee editor ----------
+  function renderTeeRows() {
+    const box = $("tee-rows");
+    box.innerHTML = "";
+    formTees.forEach((tee, i) => {
+      const row = document.createElement("div");
+      row.className = "tee-row";
+      row.innerHTML =
+        '<input placeholder="Black" value="' + esc(tee.name) + '" data-k="name" />' +
+        '<input placeholder="7455" inputmode="numeric" value="' + esc(tee.yards) + '" data-k="yards" />' +
+        '<input placeholder="72" inputmode="numeric" value="' + esc(tee.par) + '" data-k="par" />' +
+        '<input placeholder="76.4" inputmode="decimal" value="' + esc(tee.rating) + '" data-k="rating" />' +
+        '<input placeholder="141" inputmode="numeric" value="' + esc(tee.slope) + '" data-k="slope" />' +
+        '<button type="button" class="del-x" title="Remove tee">&times;</button>';
+      row.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("input", () => { formTees[i][inp.dataset.k] = inp.value; });
+      });
+      row.querySelector(".del-x").addEventListener("click", () => { formTees.splice(i, 1); renderTeeRows(); });
+      box.appendChild(row);
+    });
+  }
+  $("tee-add-btn").addEventListener("click", () => {
+    formTees.push({ name: "", yards: "", par: "", rating: "", slope: "" });
+    renderTeeRows();
+  });
+
+  // ---------- add / edit modal ----------
+  function prefillFrom(prev) {
+    $("f-course").value = prev.course || "";
+    if (!$("f-city").value) $("f-city").value = prev.city || "";
+    if (!$("f-architect").value) $("f-architect").value = prev.architect || "";
+    if (!$("f-state").value) $("f-state").value = prev.stateRank || "";
+    if (!$("f-natl").value) $("f-natl").value = prev.nationalRank || "";
+    if (!$("f-history").value) $("f-history").value = prev.history || "";
+    if (!$("f-t100").value) $("f-t100").value = prev.t100 || "";
+    if (!$("f-r1").value) $("f-r1").value = prev.rank1 || "";
+    if (!$("f-r2").value) $("f-r2").value = prev.rank2 || "";
+    if (formTees.length === 0 && (prev.tees || []).length) {
+      formTees = prev.tees.map(t => Object.assign({}, t));
+      renderTeeRows();
+    }
+  }
+  function courseDefaults(courseName) {
+    const key = slugify(courseName);
+    for (let i = rounds.length - 1; i >= 0; i--) {
+      if (slugify(rounds[i].course) === key) return rounds[i];
+    }
+    return null;
+  }
+  function openForm(idx) {
+    editingIndex = idx;
+    $("form-title").textContent = idx === null ? "Log Round" : "Edit Round";
+    $("f-delete").style.display = idx === null ? "none" : "";
+    const r = idx === null ? {} : rounds[idx];
+    $("f-date").value = r.date || "";
+    $("f-status").value = r.status || "upcoming";
+    $("f-course").value = r.course || "";
+    $("f-city").value = r.city || "";
+    $("f-architect").value = r.architect || "";
+    $("f-state").value = r.stateRank ?? "";
+    $("f-natl").value = r.nationalRank ?? "";
+    $("f-r1").value = r.rank1 ?? "";
+    $("f-r2").value = r.rank2 ?? "";
+    $("f-s1").value = r.score1 ?? "";
+    $("f-s2").value = r.score2 ?? "";
+    $("f-history").value = r.history || "";
+    $("f-t100").value = r.t100 || "";
+    $("f-notes").value = r.notes || "";
+    formTags = (r.tags || []).slice();
+    formTees = (r.tees || []).map(t => Object.assign({ name:"", yards:"", par:"", rating:"", slope:"" }, t));
+    renderTagCloud();
+    renderTeeRows();
+    srHide();
+    $("form-overlay").classList.add("open");
+  }
+  $("f-course").addEventListener("change", () => {
+    if (editingIndex !== null) return;
+    const prev = courseDefaults($("f-course").value);
+    if (!prev) return;
+    prefillFrom(prev);
+    toast("Pre-filled from your last round here");
+  });
+  $("nav-add").addEventListener("click", () => openForm(null));
+  $("f-cancel").addEventListener("click", () => $("form-overlay").classList.remove("open"));
+  $("f-save").addEventListener("click", () => {
+    const r = {
+      date: $("f-date").value, course: $("f-course").value.trim(), city: $("f-city").value.trim(),
+      architect: $("f-architect").value.trim(), history: $("f-history").value.trim(),
+      stateRank: $("f-state").value.trim(), nationalRank: $("f-natl").value.trim(),
+      rank1: $("f-r1").value.trim(), rank2: $("f-r2").value.trim(),
+      status: $("f-status").value, score1: $("f-s1").value.trim(), score2: $("f-s2").value.trim(),
+      tags: formTags.slice(),
+      tees: formTees.filter(t => t.name || t.yards || t.par || t.rating || t.slope),
+      t100: $("f-t100").value.trim(),
+      notes: $("f-notes").value.trim()
+    };
+    if (!r.date || !r.course) { toast("Date and course are required"); return; }
+    if (editingIndex === null) rounds.push(r); else rounds[editingIndex] = r;
+    persist();
+    $("form-overlay").classList.remove("open");
+    render();
+    toast(editingIndex === null ? "Round logged" : "Round updated");
+  });
+  $("f-delete").addEventListener("click", () => {
+    if (editingIndex === null) return;
+    if (!confirm("Delete this round?")) return;
+    rounds.splice(editingIndex, 1);
+    persist();
+    $("form-overlay").classList.remove("open");
+    render();
+    toast("Round deleted");
+  });
+
+  // ---------- course search (GolfCourseAPI + Wikipedia) ----------
+  function getApiKey() { try { return localStorage.getItem(KEY_LS) || ""; } catch (e) { return ""; } }
+  $("settings-btn").addEventListener("click", () => {
+    $("api-key-input").value = getApiKey();
+    $("settings-overlay").classList.add("open");
+  });
+  $("settings-cancel").addEventListener("click", () => $("settings-overlay").classList.remove("open"));
+  $("settings-save").addEventListener("click", () => {
+    try { localStorage.setItem(KEY_LS, $("api-key-input").value.trim()); } catch (e) {}
+    $("settings-overlay").classList.remove("open");
+    toast("API key saved on this device");
+  });
+
+  function srStatus(html) {
+    const box = $("search-results");
+    box.style.display = "";
+    box.innerHTML = '<div class="sr-status">' + html + '</div>';
+  }
+  function srHide() { $("search-results").style.display = "none"; $("search-results").innerHTML = ""; }
+
+  $("course-search-btn").addEventListener("click", runCourseSearch);
+  $("f-course").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); runCourseSearch(); } });
+
+  async function runCourseSearch() {
+    const q = $("f-course").value.trim();
+    if (!q) { toast("Type a course name first"); return; }
+    const key = getApiKey();
+    if (!key) {
+      srStatus('No API key yet. Get a free one at <a href="https://golfcourseapi.com" target="_blank" rel="noopener">golfcourseapi.com</a> (email signup), then paste it via the &#9881; gear. Wikipedia lookup for architect/history will still run.');
+      fillFromWikipedia(q, true);
+      return;
+    }
+    srStatus("Searching&hellip;");
+    try {
+      const res = await fetch("https://api.golfcourseapi.com/v1/search?search_query=" + encodeURIComponent(q), {
+        headers: { "Authorization": "Key " + key }
+      });
+      if (res.status === 401) { srStatus("API key rejected — check it via the &#9881; gear."); return; }
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const courses = (data.courses || []).slice(0, 8);
+      if (!courses.length) { srStatus("No matches. Try fewer words."); return; }
+      const box = $("search-results");
+      box.innerHTML = "";
+      box.style.display = "";
+      courses.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "sr-item";
+        const loc = c.location ? [c.location.city, c.location.state].filter(Boolean).join(", ") : "";
+        item.innerHTML = "<b>" + esc(c.club_name || c.course_name) + "</b>" +
+          (c.course_name && c.course_name !== c.club_name ? " \u2014 " + esc(c.course_name) : "") +
+          '<div class="sr-loc">' + esc(loc) + "</div>";
+        item.addEventListener("click", () => pickCourse(c, key));
+        box.appendChild(item);
+      });
+    } catch (e) {
+      srStatus("Search failed (network issue). You can still enter details manually.");
+    }
+  }
+
+  async function pickCourse(c, key) {
+    srStatus("Loading course data&hellip;");
+    let full = c;
+    try {
+      const res = await fetch("https://api.golfcourseapi.com/v1/courses/" + c.id, {
+        headers: { "Authorization": "Key " + key }
+      });
+      if (res.ok) {
+        const d = await res.json();
+        full = d.course || d;
+      }
+    } catch (e) {}
+    const name = full.club_name && full.course_name && full.course_name !== full.club_name
+      ? full.club_name + " \u2014 " + full.course_name
+      : (full.club_name || full.course_name || $("f-course").value);
+    $("f-course").value = name;
+    if (full.location) {
+      const city = [full.location.city, full.location.state].filter(Boolean).join(", ");
+      if (city) $("f-city").value = city;
+    }
+    const teeSets = (full.tees && (full.tees.male || full.tees.female)) || [];
+    if (teeSets.length) {
+      formTees = teeSets.map(t => ({
+        name: t.tee_name || "",
+        yards: t.total_yards != null ? String(t.total_yards) : "",
+        par: t.par_total != null ? String(t.par_total) : "",
+        rating: t.course_rating != null ? String(t.course_rating) : "",
+        slope: t.slope_rating != null ? String(t.slope_rating) : ""
+      }));
+      renderTeeRows();
+    }
+    srStatus("Loaded tees &amp; location. Checking Wikipedia&hellip;");
+    await fillFromWikipedia(full.club_name || full.course_name || name, false);
+    srHide();
+    toast("Course data filled — add rankings manually");
+  }
+
+  async function fillFromWikipedia(courseName, showResult) {
+    try {
+      const sr = await fetch("https://en.wikipedia.org/w/api.php?action=query&list=search&srlimit=1&format=json&origin=*&srsearch=" +
+        encodeURIComponent(courseName + " golf"));
+      const sd = await sr.json();
+      const hit = sd.query && sd.query.search && sd.query.search[0];
+      if (!hit) { if (showResult) srStatus("No Wikipedia article found — enter details manually."); return; }
+      const title = hit.title;
+      if (!$("f-history").value) {
+        try {
+          const sum = await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title));
+          if (sum.ok) {
+            const sj = await sum.json();
+            if (sj.extract) $("f-history").value = sj.extract;
+          }
+        } catch (e) {}
+      }
+      if (!$("f-architect").value) {
+        try {
+          const wt = await fetch("https://en.wikipedia.org/w/api.php?action=parse&prop=wikitext&format=json&origin=*&page=" +
+            encodeURIComponent(title));
+          const wj = await wt.json();
+          const text = wj.parse && wj.parse.wikitext && wj.parse.wikitext["*"] || "";
+          const m = text.match(/\|\s*(?:architect|designer\d?)\s*=\s*([^\n|]+)/i);
+          if (m) {
+            let arch = m[1]
+              .replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, "$1")
+              .replace(/\{\{[^}]*\}\}/g, "")
+              .replace(/<[^>]+>/g, "")
+              .replace(/\s+/g, " ").trim();
+            if (arch) $("f-architect").value = arch;
+          }
+        } catch (e) {}
+      }
+      if (showResult) srStatus("Pulled what Wikipedia had. Tees/ratings need the free API key (&#9881; gear) or manual entry.");
+    } catch (e) {
+      if (showResult) srStatus("Wikipedia lookup failed — enter details manually.");
+    }
+  }
+
+  // ---------- Top 100 lookup ----------
+  $("t100-btn").addEventListener("click", () => {
+    const q = $("f-course").value.trim();
+    if (!q) { toast("Type a course name first"); return; }
+    window.open("https://www.google.com/search?q=" + encodeURIComponent("site:top100golfcourses.com " + q), "_blank", "noopener");
+  });
+
+  // ---------- export / reset ----------
+  $("export-btn").addEventListener("click", async () => {
+    const body = rounds.map(r =>
+      "  { date: " + JSON.stringify(r.date) +
+      ", course: " + JSON.stringify(r.course) +
+      ", city: " + JSON.stringify(r.city || "") +
+      ", architect: " + JSON.stringify(r.architect || "") +
+      ", history: " + JSON.stringify(r.history || "") +
+      ", stateRank: " + JSON.stringify(r.stateRank || "") +
+      ", nationalRank: " + JSON.stringify(r.nationalRank || "") +
+      ", rank1: " + JSON.stringify(r.rank1 || "") +
+      ", rank2: " + JSON.stringify(r.rank2 || "") +
+      ", status: " + JSON.stringify(r.status) +
+      ", score1: " + JSON.stringify(r.score1 || "") +
+      ", score2: " + JSON.stringify(r.score2 || "") +
+      ", tags: " + JSON.stringify(r.tags || []) +
+      ", tees: " + JSON.stringify(r.tees || []) +
+      ", t100: " + JSON.stringify(r.t100 || "") +
+      ", notes: " + JSON.stringify(r.notes || "") + " },"
+    ).join("\n");
+    const file =
+      "// GOLF LOG DATA — paste this whole file over data.js in GitHub\n\n" +
+      "const PLAYERS = " + JSON.stringify(players) + ";\n\n" +
+      "const ROUNDS = [\n" + body + "\n];\n";
+    try {
+      await navigator.clipboard.writeText(file);
+      toast("Copied — paste over data.js in GitHub");
+    } catch (e) {
+      const ta = document.createElement("textarea");
+      ta.value = file; document.body.appendChild(ta); ta.select();
+      document.execCommand("copy"); document.body.removeChild(ta);
+      toast("Copied — paste over data.js in GitHub");
+    }
+  });
+  $("reset-btn").addEventListener("click", () => {
+    if (!confirm("Discard edits on this device and reload from the committed data.js?")) return;
+    localStorage.removeItem(LS_KEY);
+    rounds = normalize(typeof ROUNDS !== "undefined" ? JSON.parse(JSON.stringify(ROUNDS)) : []);
+    render();
+    toast("Reloaded from data.js");
+  });
+
+  // close overlays on backdrop click
+  ["form-overlay", "settings-overlay"].forEach(id => {
+    $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).classList.remove("open"); });
+  });
+
+  if (window.GHSync && GHSync.connected()) {
+    $("export-btn").style.display = "none"; $("reset-btn").style.display = "none";
+    document.querySelector("footer .hint").textContent = "Edits commit to GitHub automatically (" + GHSync.repo() + ").";
+    if (isDirty()) persist();
+    else GHSync.read("data.js").then(t => { const d = t && GHSync.evalData(t, "ROUNDS"); if (d && !isDirty()) { rounds = normalize(d); render(); } });
+  }
+  render();
+})();
+</script>
+</body>
+</html>
