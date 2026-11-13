@@ -63,7 +63,7 @@
     pics = pics.slice(-8).reverse();
     function rows(list, empty) { return list.length ? list.map(function (r) { return '<div class="hm-row" data-go="' + r.go + '">' + r.box + '<div class="hm-main"><div class="hm-t">' + esc(r.t) + '</div><div class="hm-s">' + esc(r.s || "") + "</div></div>" + (r.badge || "") + "</div>"; }).join("") : '<div class="hm-empty">' + empty + "</div>"; }
     app.innerHTML =
-      '<div class="hm-hero"><div class="k">Golf journal · Top100 rater</div><h1>Nick Jindal</h1><p>Every course played, ranked and remembered — plus where to next.</p>' +
+      '<div class="hm-hero"><div class="hm-flag"></div><div class="k">Top100 course rater, Columbus, Ohio</div><h1>Nick Jindal</h1><p>Every course I\'ve played, how it ranks, and where I\'m headed next.</p>' +
       '<div class="hm-stats">' +
       '<div class="hm-stat" data-go="#/ledger"><div class="v">' + played.length + '</div><div class="l">Courses played</div></div>' +
       '<div class="hm-stat" data-go="#/rankings"><div class="v">' + usa + ' <small>/ 100</small></div><div class="l">USA Top 100 played</div></div>' +
