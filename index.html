@@ -169,10 +169,12 @@
   }
   .ev.played { background: var(--green); color: #fff; }
   .ev.upcoming { background: var(--surface); color: var(--green); border: 1px dashed var(--green); }
+  .ev.ledger { background: var(--green-soft); color: var(--green-deep); border: 1px solid #cfe3d8; }
   .legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; color: var(--muted); font-weight: 500; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
   .legend .i-p { background: var(--green); }
   .legend .i-u { border: 1px dashed var(--green); background: var(--surface); }
+  .legend .i-l { background: var(--green-soft); border: 1px solid #cfe3d8; }
 
   /* ---------- Rankings table ---------- */
   .tbl-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow); }
@@ -629,13 +631,13 @@
   function renderCalendarPage() {
     app.innerHTML =
       '<div class="page-title">Calendar</div>' +
-      '<div class="page-sub">Played rounds are solid; upcoming are dashed. Tap a round to open the course.</div>' +
+      '<div class="page-sub">Played rounds are solid, upcoming are dashed, and light green is a date played from the Ledger.</div>' +
       '<div class="cal-head">' +
         '<div class="cal-title" id="cal-title"></div>' +
         '<div class="cal-nav"><button id="prev-m">&larr;</button><button id="today-m">Today</button><button id="next-m">&rarr;</button></div>' +
       '</div>' +
       '<div class="grid" id="cal-grid"></div>' +
-      '<div class="legend"><span><i class="i-p"></i>Played</span><span><i class="i-u"></i>Upcoming</span></div>';
+      '<div class="legend"><span><i class="i-p"></i>Played</span><span><i class="i-u"></i>Upcoming</span><span><i class="i-l"></i>Date played (Ledger)</span></div>';
     $("prev-m").addEventListener("click", () => { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1); drawGrid(); });
     $("next-m").addEventListener("click", () => { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1); drawGrid(); });
     $("today-m").addEventListener("click", () => { viewDate = new Date(); drawGrid(); });
@@ -659,6 +661,16 @@
       if (d.toDateString() === today.toDateString()) cell.classList.add("today");
       cell.innerHTML = '<span class="dnum num">' + d.getDate() + '</span>';
       const iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+      if (window.LedgerApp) LedgerApp.courses().forEach(c => {
+        if (c.played && c.datePlayed === iso && !rounds.some(r => r.date === iso && slugify(r.course) === slugify(c.name))) {
+          const ev = document.createElement("span");
+          ev.className = "ev ledger";
+          ev.textContent = c.name;
+          ev.title = c.name + " — played (from the Ledger)";
+          ev.addEventListener("click", () => location.hash = "#/ledger");
+          cell.appendChild(ev);
+        }
+      });
       rounds.forEach((r) => {
         if (r.date === iso) {
           const ev = document.createElement("span");
@@ -1123,6 +1135,7 @@
     $(id).addEventListener("click", (e) => { if (e.target === $(id)) $(id).classList.remove("open"); });
   });
 
+  if (window.LedgerApp && LedgerApp.onChange) LedgerApp.onChange(() => { if (route().name === "calendar" || route().name === "home") render(); });
   if (window.GHSync && GHSync.connected()) {
     $("export-btn").style.display = "none"; $("reset-btn").style.display = "none";
     document.querySelector("footer .hint").textContent = "Edits commit to GitHub automatically (" + GHSync.repo() + ").";
