@@ -112,15 +112,36 @@
     s.innerHTML = '<div class="sy-modal"><h3>Save edits to GitHub</h3>' +
       (connected() ? '<p class="sy-msg ok">This device is connected — edits commit to <b>' + repo() + "</b>.</p>" : "<p>Connect this device once and every edit you make here is committed to the repo automatically — no copying files.</p>") +
       '<ol><li><a href="' + tokenUrl + '" target="_blank" rel="noopener">Create a fine-grained token</a> (opens GitHub).</li><li>Repository access → <b>Only select repositories</b> → <b>' + repo().split("/")[1] + "</b>.</li><li>Permissions → Repository → <b>Contents: Read and write</b> (may be pre-set).</li><li>Generate, copy it, paste below. It's stored only in this browser.</li></ol>" +
-      '<label>Token<input id="sy-token" type="password" autocomplete="off" placeholder="github_pat_…" value=""></label>' +
+      '<label>Token' + (connected() ? " (leave blank to keep the current one)" : "") + '<input id="sy-token" type="password" autocomplete="off" placeholder="github_pat_…" value=""></label>' +
       '<label>Repository<input id="sy-repo" value="' + repo() + '"></label>' +
       '<div class="sy-msg" id="sy-msg"></div>' +
+      (connected() && window.SiteGate ? '<hr style="border:0;border-top:1px solid var(--line);margin:4px 0"><h3 style="font-size:16px">Site password</h3>' +
+        '<p class="sy-msg" style="color:var(--muted)">' + (SiteGate.enabled() ? "The site is locked with a password. Each device asks for it once." : "Lock the site so only people with the password can open it.") + " It hides the site, but GitHub repos on free plans are public, so the raw files can still be read on github.com.</p>" +
+        '<label>New password<input id="sy-pw1" type="password" autocomplete="new-password"></label><label>Confirm<input id="sy-pw2" type="password" autocomplete="new-password"></label>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end">' + (SiteGate.enabled() ? '<button class="btn btn-ghost btn-sm" id="sy-pwoff">Remove password</button>' : "") + '<button class="btn btn-primary btn-sm" id="sy-pwset">' + (SiteGate.enabled() ? "Change password" : "Set password") + "</button></div>" +
+        '<div class="sy-msg" id="sy-pwmsg"></div>' : "") +
       '<div style="display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap"><div>' + (connected() ? '<button class="btn btn-danger btn-sm" id="sy-off">Disconnect this device</button>' : "") + '</div>' +
       '<div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" id="sy-close">Close</button><button class="btn btn-primary btn-sm" id="sy-save">' + (connected() ? "Update" : "Connect") + "</button></div></div></div>";
     document.body.appendChild(s);
     function close() { s.remove(); }
     s.addEventListener("mousedown", function (e) { if (e.target === s) close(); });
     s.querySelector("#sy-close").onclick = close;
+    function writeConfig(cfg, okText) {
+      var m = s.querySelector("#sy-pwmsg"); m.className = "sy-msg"; m.textContent = "Saving…";
+      write("site-config.js", "// Site settings — written by the site's \"Connect GitHub\" dialog. Don't edit by hand.\nconst SITE_CONFIG = " + JSON.stringify(cfg) + ";\n", "Site: update password").then(function () {
+        SiteGate.remember(cfg.passwordHash); m.className = "sy-msg ok"; m.textContent = okText;
+      }, function (e) { m.className = "sy-msg err"; m.textContent = "Couldn't save: " + e.message; });
+    }
+    var pwset = s.querySelector("#sy-pwset");
+    if (pwset) pwset.onclick = function () {
+      var a = s.querySelector("#sy-pw1").value, b = s.querySelector("#sy-pw2").value, m = s.querySelector("#sy-pwmsg");
+      if (a.length < 6) { m.className = "sy-msg err"; m.textContent = "Use at least 6 characters."; return; }
+      if (a !== b) { m.className = "sy-msg err"; m.textContent = "Those don't match."; return; }
+      var salt = SiteGate.newSalt();
+      SiteGate.hash(a, salt).then(function (h) { writeConfig({ passwordHash: h, salt: salt }, "Password set. The public site locks in about a minute; this device stays unlocked."); });
+    };
+    var pwoff = s.querySelector("#sy-pwoff");
+    if (pwoff) pwoff.onclick = function () { writeConfig({ passwordHash: "", salt: "" }, "Password removed — the site will be open in about a minute."); };
     var off = s.querySelector("#sy-off"); if (off) off.onclick = function () { set(TOKEN_KEY, ""); shas = {}; lastError = ""; emit(); close(); };
     s.querySelector("#sy-save").onclick = function () {
       var t = s.querySelector("#sy-token").value.trim(), r = s.querySelector("#sy-repo").value.trim(), msg = s.querySelector("#sy-msg");

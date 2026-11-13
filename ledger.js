@@ -42,6 +42,7 @@
   ".lg-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}" +
   ".lg-photos figure{margin:0;aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:#ECEFE9}.lg-photos img{width:100%;height:100%;object-fit:cover;display:block}" +
   ".lg-note{font-size:12.5px;color:var(--muted)}" +
+  ".lg-date{color:var(--green);font-weight:600}.lg-rks{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}.lg-rk{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:#ECEFE9;color:var(--muted)}.lg-rk.u{background:#E3EBF5;color:#264d77}.lg-rk.w{background:#1f3a2b;color:#fff}.lg-rk.s{background:var(--green-soft);color:var(--green)}" +
   ".lg-ph{position:relative}.lg-phdel{position:absolute;top:4px;right:4px;z-index:2;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:14px;line-height:22px;cursor:pointer;padding:0}" +
   ".lg-empty{padding:40px 0;color:var(--muted);text-align:center;font-size:16px}" +
   ".lg-scrim{position:fixed;inset:0;background:rgba(18,24,20,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 14px;overflow:auto;z-index:60}" +
@@ -54,8 +55,9 @@
 
   // ---------- state ----------
   function seed() { return normalize(JSON.parse(JSON.stringify(typeof LEDGER_DATA !== "undefined" ? LEDGER_DATA : []))); }
-  function normalize(l) { return l.map(function (c) { return Object.assign({ town: "", state: "", year: null, played: false, playedYear: "", architects: [], renovations: [], notes: "", photos: [] }, c); }); }
+  function normalize(l) { return l.map(function (c) { return Object.assign({ town: "", state: "", year: null, played: false, playedYear: "", datePlayed: "", architects: [], renovations: [], notes: "", photos: [], t100State: null, t100USA: null, t100World: null, t100Slug: "", myState: null, myUSA: null }, c); }); }
   var DIRTY_KEY = LS_KEY + "-dirty";
+  var ledgerListeners = [];
   function isDirty() { try { return !!localStorage.getItem(DIRTY_KEY); } catch (e) { return false; } }
   function setDirty(v) { try { if (v) localStorage.setItem(DIRTY_KEY, "1"); else localStorage.removeItem(DIRTY_KEY); } catch (e) {} }
   // Local edits only win while they haven't reached GitHub yet; otherwise the file (or GitHub) is the truth.
@@ -72,7 +74,7 @@
   }
   if (window.GHSync && GHSync.connected()) {
     if (isDirty()) persist();
-    else GHSync.read("ledger-data.js").then(function (t) { var d = t && GHSync.evalData(t, "LEDGER_DATA"); if (d && !isDirty()) { courses = normalize(d); if (host && location.hash.indexOf("ledger") >= 0) render(host); } });
+    else GHSync.read("ledger-data.js").then(function (t) { var d = t && GHSync.evalData(t, "LEDGER_DATA"); if (d && !isDirty()) { courses = normalize(d); ledgerListeners.forEach(function (f) { f(); }); if (host && location.hash.indexOf("ledger") >= 0) render(host); } });
     GHSync.read("photos.js").then(function (t) { var d = t && GHSync.evalData(t, "PHOTOS"); if (d) { photoMap = d; if (host && location.hash.indexOf("ledger") >= 0) render(host); } });
   }
   var S = { group: "architect", show: "all", states: {}, q: "", open: {}, confirmDel: null };
@@ -82,6 +84,14 @@
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function photosOf(c) { var m = photoMap[c.id] || []; return m.concat(c.photos.filter(function (f) { return m.indexOf(f) < 0; })); }
+  function fmtDate(d) { if (!d) return ""; var p = d.split("-"); if (p.length < 3) return d; return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }); }
+  function rankChips(c) {
+    var out = [];
+    if (c.t100World) out.push('<span class="lg-rk w">World #' + c.t100World + "</span>");
+    if (c.t100USA) out.push('<span class="lg-rk u">USA #' + c.t100USA + "</span>");
+    if (c.t100State) out.push('<span class="lg-rk s">' + esc(c.state) + " #" + c.t100State + "</span>");
+    return out.length ? '<div class="lg-rks">' + out.join("") + "</div>" : "";
+  }
   function canSync() { return !!(window.GHSync && GHSync.connected()); }
   function key(s) { return String(s || "").toLowerCase().replace(/\(.*?\)/g, "").replace(/\b(the|golf|country|club|links|of|course|cc|gc)\b/g, "").replace(/[^a-z0-9]+/g, ""); }
   // Rounds logged as played in Course Log also count.
@@ -153,7 +163,7 @@
     if (open) {
       var pics = photosOf(c).map(function (f) { var src = previews[f] || (/^(https?:|data:|\/|photos\/)/.test(f) ? f : "photos/" + f); var del = canSync() && /^photos\//.test(f) ? '<button class="lg-phdel" data-lgphdel="' + esc(f) + '" data-id="' + esc(c.id) + '" title="Remove photo">×</button>' : ""; return '<div class="lg-ph">' + del + '<a href="' + esc(src) + '" target="_blank" rel="noopener">' + '<figure><img src="' + esc(src) + '" alt="' + esc(c.name) + '" loading="lazy" onerror="this.parentNode.style.display=\'none\'"></figure></a></div>'; }).join("");
       det = '<div class="lg-det"><div class="lg-g2">' +
-        '<label>Year first played<input data-lgf="playedYear" data-id="' + esc(c.id) + '" value="' + esc(c.playedYear) + '" inputmode="numeric"></label>' +
+        '<label>Date played<input type="date" data-lgf="datePlayed" data-id="' + esc(c.id) + '" value="' + esc(c.datePlayed) + '"' + (p ? "" : " disabled title=\"Tick the course as played first\"") + '>' + (c.playedYear && !c.datePlayed ? '<span class="lg-note">Year on file: ' + esc(c.playedYear) + "</span>" : "") + "</label>" +
         '<label>Architects (comma-separated)<input data-lgf="architects" data-id="' + esc(c.id) + '" value="' + esc(c.architects.join(", ")) + '"></label></div>' +
         '<div class="lg-g2"><label>Town<input data-lgf="town" data-id="' + esc(c.id) + '" value="' + esc(c.town) + '"></label><label>State<input data-lgf="state" data-id="' + esc(c.id) + '" value="' + esc(c.state) + '" maxlength="2"></label></div>' +
         '<label>Notes<textarea data-lgf="notes" data-id="' + esc(c.id) + '" placeholder="Best holes, conditions, who you played with…">' + esc(c.notes) + "</textarea></label>" +
@@ -166,7 +176,7 @@
     }
     return '<li class="lg-item ' + (p ? "played" : "") + '"><div class="lg-line">' +
       '<button class="lg-ball ' + (p ? "on" : "") + '" title="' + (viaRound ? "Played (from a logged round)" : "Mark played") + '" data-lgt="' + esc(c.id) + '"' + (viaRound ? " disabled" : "") + "></button>" +
-      '<button class="lg-main" data-lgo="' + esc(c.id) + '"><div class="lg-name">' + esc(c.name) + '</div><div class="lg-meta">' + esc(c.town) + (c.town ? ", " : "") + esc(c.state) + ' · <span class="a">' + esc(c.architects.join(" & ") || "Architect unknown") + "</span>" + ren + "</div></button>" +
+      '<button class="lg-main" data-lgo="' + esc(c.id) + '"><div class="lg-name">' + esc(c.name) + '</div><div class="lg-meta">' + esc(c.town) + (c.town ? ", " : "") + esc(c.state) + ' · <span class="a">' + esc(c.architects.join(" & ") || "Architect unknown") + "</span>" + ren + (p && (c.datePlayed || c.playedYear) ? ' · <span class="lg-date">played ' + esc(fmtDate(c.datePlayed) || c.playedYear) + "</span>" : "") + "</div>" + rankChips(c) + "</button>" +
       '<div class="lg-right">' + (viaRound ? '<span class="lg-tagr">logged</span>' : "") + (photosOf(c).length ? '<span class="lg-tagp">' + photosOf(c).length + " ph</span>" : "") + '<span class="yr">' + esc(c.year || "") + '</span><span class="lg-st">' + esc(c.state) + "</span></div></div>" + det + "</li>";
   }
   function redrawList() { var l = document.getElementById("lg-list"); if (l) l.innerHTML = listHTML(roundKeys()); }
@@ -210,7 +220,7 @@
     if (d.lgg) { S.group = d.lgg; saveView(); render(host); }
     else if (d.lgs) { S.show = d.lgs; saveView(); render(host); }
     else if (d.lgst) { S.states[d.lgst] = !S.states[d.lgst]; render(host); }
-    else if (d.lgt) { var c = courses.find(function (x) { return x.id === d.lgt; }); if (c) { c.played = !c.played; persist(); render(host); } }
+    else if (d.lgt) { var c = courses.find(function (x) { return x.id === d.lgt; }); if (c) { c.played = !c.played; if (c.played && !c.datePlayed) S.open[c.id] = true; persist(); render(host); } }
     else if (d.lgo) { S.open[d.lgo] = !S.open[d.lgo]; S.confirmDel = null; redrawList(); }
     else if (d.lgask) { S.confirmDel = d.lgask; redrawList(); }
     else if (d.lgkeep) { S.confirmDel = null; redrawList(); }
@@ -257,7 +267,9 @@
   }
   function blobToB64(b) { return new Promise(function (res) { var r = new FileReader(); r.onload = function () { res(String(r.result).split(",")[1]); }; r.readAsDataURL(b); }); }
   document.addEventListener("change", function (e) {
-    var t = e.target; if (!t.dataset || !t.dataset.lgup || !canSync()) return;
+    var t = e.target;
+    if (t.dataset && t.dataset.lgf === "datePlayed") { var dc = courses.find(function (x) { return x.id === t.dataset.id; }); if (dc) { dc.datePlayed = t.value; persist(); redrawList(); } return; }
+    if (!t.dataset || !t.dataset.lgup || !canSync()) return;
     var id = t.dataset.lgup, files = Array.prototype.slice.call(t.files || []); if (!files.length) return;
     var stamp = new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14), done = 0, failed = "";
     upMsg[id] = "Uploading " + files.length + " photo" + (files.length > 1 ? "s" : "") + "…"; redrawList();
@@ -282,6 +294,10 @@
 
   window.LedgerApp = {
     render: render,
+    courses: function () { return courses; },
+    update: function (id, patch) { var c = courses.find(function (x) { return x.id === id; }); if (!c) return; Object.assign(c, patch); persist(); },
+    photosOf: function (c) { return photosOf(c); },
+    onChange: function (f) { ledgerListeners.push(f); },
     playedNames: function () { var rk = roundKeys(); return courses.filter(function (c) { return c.played || fromRounds(c, rk); }).map(function (c) { return c.name; }); }
   };
 })();

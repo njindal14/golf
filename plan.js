@@ -299,5 +299,5 @@
   });
   document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") closeModal(); });
 
-  window.PlanApp = { render: render };
+  window.PlanApp = { render: render, events: function () { return state.events; } };
 })();

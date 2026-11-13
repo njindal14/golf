@@ -6,7 +6,9 @@ Course Log + Course Ledger + 2027 Plan + Bucket List — one static site on GitH
 
 | Tab | What it is | Data file |
 |---|---|---|
-| Home / Calendar / Rankings | Rounds you log (+ Round) | `data.js` |
+| Home | Dashboard: stats, next up, recently played, best-ranked, photos | (reads everything) |
+| Calendar | Rounds you log (+ Round) | `data.js` |
+| Rankings | Top100 state / USA / World ranks for every course + your own ranks | `ledger-data.js` |
 | Ledger | Every course played or wanted, by architect, with photos | `ledger-data.js`, `photos.js`, `photos/` |
 | 2027 Plan | Trips, rater rounds, majors, blocked dates | `plan-data.js` |
 | Bucket List | Courses to chase, by rater region | `plan-data.js` |
@@ -21,6 +23,10 @@ Course Log + Course Ledger + 2027 Plan + Bucket List — one static site on GitH
    a laptop, and Claude's edits all stay in step.
 
 Devices that aren't connected can still view everything (edits there stay in that browser only).
+
+## Password
+
+Connect GitHub → **Site password** to lock the site. Each device asks once. It hides the site, but the repo itself is public on GitHub's free plan.
 
 ## Photos
 
